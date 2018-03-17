@@ -6,7 +6,10 @@ Requires youtube-dl to be on your PATH. https://youtube-dl.org/
 
 import argparse
 import collections
+import os
+import pathlib
 import urllib.request
+import youtube_dl
 
 Video = collections.namedtuple('Video', 'timestamp source vidId title')
 
@@ -37,25 +40,39 @@ def readVidLog():
     vidLogUrl = 'http://radio.berrytube.tv/vidlog.txt'
     vidlog = urllib.request.urlopen(vidLogUrl)
     videosById = {}
-    errors = 0
+    errors = []
     for line in vidlog:
         try:
             video = Video(line)
         except TypeError:
             # TODO: log errored videos
-            errors += 1
+            errors.append(line)
             continue
         if video.vidId in videosById:
             videosById[video.vidId].incrementCount()
         else:
             videosById[video.vidId] = video
-    if errors > 0:
-        print("Unable to parse {} lines of vidlog.txt".format(errors))
+    if len(errors) > 0:
+        print("Unable to parse {} lines of vidlog.txt".format(len(errors)))
     return videosById
 
 
+def performDownload(videosToDownload, targetDirectory):
+    pathlib.Path(targetDirectory).mkdir(parents=True, exist_ok=True)
+    video = videosToDownload[10]
+    videoUrl = "https://www.youtube.com/watch?v={}".format(video.vidId)
+    options =  {
+        'output': "%(title)s-%(id)s.%(ext)s"    
+    }
+    previousWorkingDirectory = os.getcwd()
+    os.chdir(targetDirectory)
+    with youtube_dl.YoutubeDL(options) as ydl:
+        ydl.download([videoUrl])
+    os.chdir(previousWorkingDirectory)
+
+
 def main():
-    targetDirectory = "V:\\Media\\berrytubeBackup"
+    targetDirectory = "V:/Media/berrytubeBackup/"
     requiredPlays = 2
 
     args = parseArgs()
@@ -64,10 +81,16 @@ def main():
     if args.requiredPlays is not None:
         requiredPlays = args.requiredPlays
 
+    if not targetDirectory.endswith('/'):
+        targetDirectory += '/'
+
     videosById = readVidLog()
     print("Found {} unique videos.".format(len(videosById)))
     videosToDownload = [v for v in videosById.values() if v.playCount >= requiredPlays and v.source == 'yt']
     print("Will download {} videos to {}".format(len(videosToDownload), targetDirectory))
+    answer = input("Do you want to continue? (yes/no)")
+    if answer == 'y' or answer == 'yes':
+        performDownload(videosToDownload, targetDirectory)
 
 
 if __name__ == "__main__":
