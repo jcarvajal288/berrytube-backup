@@ -32,7 +32,8 @@ def parseArgs():
     return parser.parse_args()
 
 
-def readVidLog(requiredPlays):
+def readVidLog():
+    print("Parsing vidlog...")
     vidLogUrl = 'http://radio.berrytube.tv/vidlog.txt'
     vidlog = urllib.request.urlopen(vidLogUrl)
     videosById = {}
@@ -48,17 +49,13 @@ def readVidLog(requiredPlays):
             videosById[video.vidId].incrementCount()
         else:
             videosById[video.vidId] = video
-    videosToDownload = [v for v in videosById.values() if v.playCount >= requiredPlays]
     if errors > 0:
         print("Unable to parse {} lines of vidlog.txt".format(errors))
-    print("Will download {}/{} videos.".format(len(videosToDownload), len(videosById)))
-    return videosToDownload
-
-
+    return videosById
 
 
 def main():
-    targetDirectory = "V:\Media\Backup"
+    targetDirectory = "V:\\Media\\berrytubeBackup"
     requiredPlays = 2
 
     args = parseArgs()
@@ -67,7 +64,10 @@ def main():
     if args.requiredPlays is not None:
         requiredPlays = args.requiredPlays
 
-    videosToDownload = readVidLog(requiredPlays)
+    videosById = readVidLog()
+    print("Found {} unique videos.".format(len(videosById)))
+    videosToDownload = [v for v in videosById.values() if v.playCount >= requiredPlays and v.source == 'yt']
+    print("Will download {} videos to {}".format(len(videosToDownload), targetDirectory))
 
 
 if __name__ == "__main__":
