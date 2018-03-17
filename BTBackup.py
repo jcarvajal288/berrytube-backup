@@ -27,9 +27,9 @@ class Video(object):
 
 
 class Logger(object):
-    def __init__(self, ydl):
+    def __init__(self):
         self.errors = []
-        self.ydl = ydl
+        self.ydl = None
 
     def to_stdout(self, message, skip_eol=False, check_quiet=False):
         """Print message to stdout if not in quiet mode."""
@@ -47,7 +47,7 @@ class Logger(object):
 
     def debug(self, msg):
         skip_eol = ' ETA ' in msg
-        self.to_stdout(msg, skip_eol)
+        self.to_stdout(msg, skip_eol, check_quiet=True)
 
     def warning(self, msg):
         self.to_stdout(msg)
@@ -96,7 +96,6 @@ def filterVideos(videosById, requiredPlays):
 
 def performDownload(videosToDownload, targetDirectory):
     pathlib.Path(targetDirectory).mkdir(parents=True, exist_ok=True)
-    video = videosToDownload[10]
     urls = ["https://www.youtube.com/watch?v={}".format(v.vidId) for v in videosToDownload]
     options =  {
         'ignoreerrors': True,
@@ -104,10 +103,25 @@ def performDownload(videosToDownload, targetDirectory):
     }
     previousWorkingDirectory = os.getcwd()
     os.chdir(targetDirectory)
+    logger = Logger()
     with youtube_dl.YoutubeDL(options) as ydl:
-        ydl.params['logger'] = Logger(ydl) # done here to reuse the default logger's nifty screen logging
-        ydl.download(urls[:10])
+        logger.ydl = ydl # done here to reuse the default logger's nifty screen logging
+        ydl.params['logger'] = logger
+        ydl.download(urls)
     os.chdir(previousWorkingDirectory)
+    return logger
+
+
+def processErrors(logger, videosById):
+    print("Errors occurred while downloading.  Some videos may be unavailable.  Check errorLog.txt for details.")
+    with open('errorLog.txt', 'w') as logFile:
+        print("UNAVAILABLE VIDEOS:", file=logFile)
+        for error in logger.errors:
+            if "This video is unavailable." in error:
+                vidId = error.split(': ')[1]
+                title = videosById[vidId].title
+                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
+
 
 
 def main():
@@ -125,11 +139,14 @@ def main():
 
     videosById = readVidLog()
     print("Found {} unique videos.".format(len(videosById)))
+
     videosToDownload = filterVideos(videosById, requiredPlays)
+
     print("Will download {} videos to {}".format(len(videosToDownload), targetDirectory))
     answer = input("Do you want to continue? (yes/no)")
     if answer == 'y' or answer == 'yes':
-        performDownload(videosToDownload, targetDirectory)
+        logger = performDownload(videosToDownload, targetDirectory)
+        processErrors(logger, videosById)
 
 
 if __name__ == "__main__":
