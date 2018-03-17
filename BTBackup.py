@@ -5,13 +5,10 @@ Requires youtube-dl to be on your PATH. https://youtube-dl.org/
 """
 
 import argparse
-import collections
 import os
 import pathlib
 import urllib.request
 import youtube_dl
-
-Video = collections.namedtuple('Video', 'timestamp source vidId title')
 
 class Video(object):
     def __init__(self, line):
