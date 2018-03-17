@@ -107,13 +107,16 @@ def performDownload(videosToDownload, targetDirectory):
     with youtube_dl.YoutubeDL(options) as ydl:
         logger.ydl = ydl # done here to reuse the default logger's nifty screen logging
         ydl.params['logger'] = logger
-        ydl.download(urls)
+        try:
+            ydl.download(urls)
+        except KeyboardInterrupt:
+            pass # let the program finish writing its error log
     os.chdir(previousWorkingDirectory)
     return logger
 
 
 def processErrors(logger, videosById):
-    print("Errors occurred while downloading.  Some videos may be unavailable.  Check errorLog.txt for details.")
+    print("ERRORS OCCURRED WHILE DOWNLOADING.  Some videos may be unavailable.  Check errorLog.txt for details.")
     with open('errorLog.txt', 'w') as logFile:
         print("UNAVAILABLE VIDEOS:", file=logFile)
         for error in logger.errors:
