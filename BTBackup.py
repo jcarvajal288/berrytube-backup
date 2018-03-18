@@ -16,7 +16,7 @@ class Video(object):
         self.timestamp = data[0]
         self.source = data[1]
         self.vidId = data[2]
-        self.title = data[3].encode('utf-8')
+        self.title = data[3]
         self.playCount = 1
 
     def incrementCount(self):
@@ -129,24 +129,41 @@ def processErrors(logger, videosById):
             if "This video is unavailable." in error or "This video is no longer available" in error:
                 vidId = error.split(': ')[1]
                 title = videosById[vidId].title
-                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
-        print("")
+                try:
+                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
+                except UnicodeEncodeError:
+                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'), file=logFile)
+        print("\n")
         print("COPYRIGHT BLOCKED VIDEOS:", file=logFile)
         for error in logger.errors:
             if "blocked it on copyright grounds" in error:
                 vidId = error.split(': ')[1]
                 title = videosById[vidId].title
-                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
-        print("")
+                try:
+                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
+                except UnicodeEncodeError:
+                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'), file=logFile)
+        print("\n")
         print("REGION BLOCKED VIDEOS:", file=logFile)
         for error in logger.errors:
             if "not available in your country" in error:
                 vidId = error.split(': ')[1]
                 title = videosById[vidId].title
-                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
-        print("")
+                try:
+                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
+                except UnicodeEncodeError:
+                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'), file=logFile)
+        print("\n")
         print("FULL ERROR LOG:", file=logFile)
-        [print(e, file=logFile) for e in logger.errors]
+        for error in logger.errors:
+            vidId = error.split(': ')[1]
+            title = videosById[vidId].title
+            try:
+                print("\t{}".format(error), file=logFile)
+                print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
+            except UnicodeEncodeError:
+                print("\t{}".format(error).encode('utf-8'), file=logFile)
+                print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'), file=logFile)
 
 
 def main():
