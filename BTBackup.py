@@ -60,7 +60,8 @@ def parseArgs():
             help='directory to put the downloaded videos.  Will be created if it does not exist.')
     parser.add_argument('-r', '--requiredPlays', metavar='<integer>', type=int, dest='requiredPlays', required=False,
             help='number of plays a single video needs to have in vidlog.txt to warrant backing up.')
-    #parser.add_argument('-v', '--verbose', help='verbose output')
+    parser.add_argument('-y', '--yes', action="store_true", dest='noPrompt', 
+            help="automatically say yes to the 'are you sure?' prompt")
     return parser.parse_args()
 
 
@@ -96,7 +97,7 @@ def performDownload(videosToDownload, targetDirectory):
     urls = ["https://www.youtube.com/watch?v={}".format(v.vidId) for v in videosToDownload]
     options =  {
         'ignoreerrors': True,
-        'output': "%(title)s-%(id)s.%(ext)s"
+        'outtmpl': "%(title)s - %(id)s.%(ext)s"
     }
     previousWorkingDirectory = os.getcwd()
     os.chdir(targetDirectory)
@@ -143,10 +144,12 @@ def main():
     videosToDownload = filterVideos(videosById, requiredPlays)
 
     print("Will download {} videos to {}".format(len(videosToDownload), targetDirectory))
-    answer = input("Do you want to continue? (yes/no)")
-    if answer == 'y' or answer == 'yes':
-        logger = performDownload(videosToDownload, targetDirectory)
-        processErrors(logger, videosById)
+    if not args.noPrompt:
+        answer = input("Do you want to continue? (yes/no)")
+        if not (answer == 'y' or answer == 'yes'):
+            return
+    logger = performDownload(videosToDownload, targetDirectory)
+    processErrors(logger, videosById)
 
 
 if __name__ == "__main__":
