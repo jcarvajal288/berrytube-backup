@@ -137,6 +137,16 @@ def processErrors(logger, videosById):
                 vidId = error.split(': ')[1]
                 title = videosById[vidId].title
                 print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
+        print("")
+        print("REGION BLOCKED VIDEOS:", file=logFile)
+        for error in logger.errors:
+            if "not available in your country" in error:
+                vidId = error.split(': ')[1]
+                title = videosById[vidId].title
+                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
+        print("")
+        print("FULL ERROR LOG:", file=logFile)
+        [print(e, file=logFile) for e in logger.errors]
 
 
 def main():
