@@ -110,8 +110,6 @@ def performDownload(videosToDownload, targetDirectory):
         'ignoreerrors': True,
         'outtmpl': "{}%(title)s - %(id)s.%(ext)s".format(targetDirectory)
     }
-    #previousWorkingDirectory = os.getcwd()
-    #os.chdir(targetDirectory)
     logger = Logger()
     with youtube_dl.YoutubeDL(options) as ydl:
         logger.ydl = ydl # done here to reuse the default logger's nifty screen logging
@@ -120,7 +118,6 @@ def performDownload(videosToDownload, targetDirectory):
             ydl.download(urls)
         except KeyboardInterrupt:
             pass # let the program finish writing its error log
-    #os.chdir(previousWorkingDirectory)
     return logger
 
 
@@ -133,7 +130,13 @@ def processErrors(logger, videosById):
                 vidId = error.split(': ')[1]
                 title = videosById[vidId].title
                 print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
-
+        print("")
+        print("COPYRIGHT BLOCKED VIDEOS:", file=logFile)
+        for error in logger.errors:
+            if "blocked it on copyright grounds" in error:
+                vidId = error.split(': ')[1]
+                title = videosById[vidId].title
+                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
 
 
 def main():
