@@ -16,7 +16,7 @@ class Video(object):
         self.timestamp = data[0]
         self.source = data[1]
         self.vidId = data[2]
-        self.title = data[3]
+        self.title = data[3].encode('utf-8')
         self.playCount = 1
 
     def incrementCount(self):
@@ -87,9 +87,20 @@ def readVidLog():
     return videosById
 
 
-def filterVideos(videosById, requiredPlays):
+def getAlreadyDownloadedVidIds(targetDirectory):
+    if not os.path.isdir(targetDirectory):
+        return []
+    return [v.split(' - ')[-1][:11] for v in os.listdir(targetDirectory)]
+
+
+def filterVideos(videosById, alreadyDownloadedIds, requiredPlays):
+    def videoShouldBeDownloaded(v):
+        return v.playCount >= requiredPlays \
+               and v.source == 'yt' \
+               and v.vidId not in alreadyDownloadedIds
+
     print("Filtering out videos with fewer than {} plays.".format(requiredPlays))
-    return [v for v in videosById.values() if v.playCount >= requiredPlays and v.source == 'yt']
+    return [v for v in videosById.values() if videoShouldBeDownloaded(v)]
 
 
 def performDownload(videosToDownload, targetDirectory):
@@ -97,10 +108,10 @@ def performDownload(videosToDownload, targetDirectory):
     urls = ["https://www.youtube.com/watch?v={}".format(v.vidId) for v in videosToDownload]
     options =  {
         'ignoreerrors': True,
-        'outtmpl': "%(title)s - %(id)s.%(ext)s"
+        'outtmpl': "{}%(title)s - %(id)s.%(ext)s".format(targetDirectory)
     }
-    previousWorkingDirectory = os.getcwd()
-    os.chdir(targetDirectory)
+    #previousWorkingDirectory = os.getcwd()
+    #os.chdir(targetDirectory)
     logger = Logger()
     with youtube_dl.YoutubeDL(options) as ydl:
         logger.ydl = ydl # done here to reuse the default logger's nifty screen logging
@@ -109,7 +120,7 @@ def performDownload(videosToDownload, targetDirectory):
             ydl.download(urls)
         except KeyboardInterrupt:
             pass # let the program finish writing its error log
-    os.chdir(previousWorkingDirectory)
+    #os.chdir(previousWorkingDirectory)
     return logger
 
 
@@ -118,7 +129,7 @@ def processErrors(logger, videosById):
     with open('errorLog.txt', 'w') as logFile:
         print("UNAVAILABLE VIDEOS:", file=logFile)
         for error in logger.errors:
-            if "This video is unavailable." in error:
+            if "This video is unavailable." in error or "This video is no longer available" in error:
                 vidId = error.split(': ')[1]
                 title = videosById[vidId].title
                 print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
@@ -139,9 +150,13 @@ def main():
         targetDirectory += '/'
 
     videosById = readVidLog()
-    print("Found {} unique videos.".format(len(videosById)))
+    print("Found {} unique videos in vidlog.".format(len(videosById)))
 
-    videosToDownload = filterVideos(videosById, requiredPlays)
+    alreadyDownloadedIds = getAlreadyDownloadedVidIds(targetDirectory)
+    if len(alreadyDownloadedIds) > 0:
+        print("Found {} videos already in target directory.".format(len(alreadyDownloadedIds)))
+
+    videosToDownload = filterVideos(videosById, alreadyDownloadedIds, requiredPlays)
 
     print("Will download {} videos to {}".format(len(videosToDownload), targetDirectory))
     if not args.noPrompt:
