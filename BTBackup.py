@@ -1,7 +1,7 @@
 """
 Downloads videos from radio.berrytube.tv/vidlog.txt to a target directory.
 
-Requires youtube-dl to be on your PATH. https://youtube-dl.org/
+Requires youtube-dl as an installed Python module. https://youtube-dl.org/
 """
 
 import argparse
@@ -75,7 +75,6 @@ def readVidLog():
         try:
             video = Video(line)
         except TypeError:
-            # TODO: log errored videos
             errors.append(line)
             continue
         if video.vidId in videosById:
