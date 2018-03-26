@@ -103,7 +103,10 @@ def filterVideos(videosById, alreadyDownloadedIds, requiredPlays):
 
 
 def performDownload(videosToDownload, targetDirectory):
-    pathlib.Path(targetDirectory).mkdir(parents=True, exist_ok=True)
+    try:
+        pathlib.Path(targetDirectory).mkdir(parents=True)
+    except FileExistsError:
+        pass
     urls = ["https://www.youtube.com/watch?v={}".format(v.vidId) for v in videosToDownload]
     options =  {
         'ignoreerrors': True,
