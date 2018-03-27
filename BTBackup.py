@@ -92,11 +92,17 @@ def getAlreadyDownloadedVidIds(targetDirectory):
     return [v.split(' - ')[-1][:11] for v in os.listdir(targetDirectory)]
 
 
-def filterVideos(videosById, alreadyDownloadedIds, requiredPlays):
+def readInUnavailableVideos():
+    with open("unavailableVideos.txt") as f:
+        return set([v.strip() for v in f.readlines()])
+
+
+def filterVideos(videosById, alreadyDownloadedIds, knownUnavailableIds, requiredPlays):
     def videoShouldBeDownloaded(v):
         return v.playCount >= requiredPlays \
                and v.source == 'yt' \
-               and v.vidId not in alreadyDownloadedIds
+               and v.vidId not in alreadyDownloadedIds \
+               and v.vidId not in knownUnavailableIds
 
     print("Filtering out videos with fewer than {} plays.".format(requiredPlays))
     return [v for v in videosById.values() if videoShouldBeDownloaded(v)]
@@ -149,21 +155,22 @@ def processErrors(logger, videosById):
             printError(error)
     print("\n")
     print("FULL ERROR LOG:")
-    with open('unavailableVideos.txt', 'w') as unavailable:
-        for error in logger.errors:
-            vidId = error.split(': ')[1]
-            print(vidId, file=unavailable)
-            try:
-                title = videosById[vidId].title
-            except KeyError:
-                print("KeyError on {}".format(vidId))
-                continue
-            try:
-                print("\t{}".format(error))
-                print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId))
-            except UnicodeEncodeError:
-                print("\t{}".format(error).encode('utf-8'))
-                print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'))
+    newlyUnavailable = set()
+    for error in logger.errors:
+        vidId = error.split(': ')[1]
+        newlyUnavailable.add(vidId)
+        try:
+            title = videosById[vidId].title
+        except KeyError:
+            print("KeyError on {}".format(vidId), flush=True)
+            continue
+        try:
+            print("\t{}".format(error))
+            print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId))
+        except UnicodeEncodeError:
+            print("\t{}".format(error).encode('utf-8'))
+            print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'))
+    return newlyUnavailable
 
 
 def main():
@@ -186,15 +193,27 @@ def main():
     if len(alreadyDownloadedIds) > 0:
         print("Found {} videos already in target directory.".format(len(alreadyDownloadedIds)))
 
-    videosToDownload = filterVideos(videosById, alreadyDownloadedIds, requiredPlays)
+    knownUnavailableIds = readInUnavailableVideos()
+    if len(knownUnavailableIds) > 0:
+        print("Found {} known unavailable videos.".format(len(knownUnavailableIds)))
 
+    videosToDownload = filterVideos(videosById, alreadyDownloadedIds, knownUnavailableIds, requiredPlays)
+    if len(videosToDownload) == 0:
+        print("No videos need to be downloaded.")
+        return
     print("Will download {} videos to {}".format(len(videosToDownload), targetDirectory))
+
     if not args.noPrompt:
         answer = input("Do you want to continue? (yes/no)")
         if not (answer == 'y' or answer == 'yes'):
             return
     logger = performDownload(videosToDownload, targetDirectory)
-    processErrors(logger, videosById)
+    if len(logger.errors) > 0:
+        knownUnavailableIds.update(processErrors(logger, videosById))
+
+    with open('unavailableVideos.txt', 'w') as unavailable:
+        for vidId in knownUnavailableIds:
+            print(vidId, file=unavailable)
 
 
 if __name__ == "__main__":
