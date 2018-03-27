@@ -124,48 +124,47 @@ def performDownload(videosToDownload, targetDirectory):
 
 
 def processErrors(logger, videosById):
-    print("ERRORS OCCURRED WHILE DOWNLOADING.  Some videos may be unavailable.  Check errorLog.txt for details.")
-    with open('errorLog.txt', 'w') as logFile:
-        print("UNAVAILABLE VIDEOS:", file=logFile)
-        for error in logger.errors:
-            if "This video is unavailable." in error or "This video is no longer available" in error:
-                vidId = error.split(': ')[1]
-                title = videosById[vidId].title
-                try:
-                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
-                except UnicodeEncodeError:
-                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'), file=logFile)
-        print("\n")
-        print("COPYRIGHT BLOCKED VIDEOS:", file=logFile)
-        for error in logger.errors:
-            if "blocked it on copyright grounds" in error:
-                vidId = error.split(': ')[1]
-                title = videosById[vidId].title
-                try:
-                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
-                except UnicodeEncodeError:
-                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'), file=logFile)
-        print("\n")
-        print("REGION BLOCKED VIDEOS:", file=logFile)
-        for error in logger.errors:
-            if "not available in your country" in error:
-                vidId = error.split(': ')[1]
-                title = videosById[vidId].title
-                try:
-                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
-                except UnicodeEncodeError:
-                    print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'), file=logFile)
-        print("\n")
-        print("FULL ERROR LOG:", file=logFile)
-        for error in logger.errors:
+    print("ERRORS OCCURRED WHILE DOWNLOADING.  Some videos may be unavailable:")
+    print("UNAVAILABLE VIDEOS:")
+    for error in logger.errors:
+        if "This video is unavailable." in error or "This video is no longer available" in error:
             vidId = error.split(': ')[1]
             title = videosById[vidId].title
             try:
-                print("\t{}".format(error), file=logFile)
-                print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId), file=logFile)
+                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId))
             except UnicodeEncodeError:
-                print("\t{}".format(error).encode('utf-8'), file=logFile)
-                print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'), file=logFile)
+                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'))
+    print("\n")
+    print("COPYRIGHT BLOCKED VIDEOS:")
+    for error in logger.errors:
+        if "blocked it on copyright grounds" in error:
+            vidId = error.split(': ')[1]
+            title = videosById[vidId].title
+            try:
+                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId))
+            except UnicodeEncodeError:
+                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'))
+    print("\n")
+    print("REGION BLOCKED VIDEOS:")
+    for error in logger.errors:
+        if "not available in your country" in error:
+            vidId = error.split(': ')[1]
+            title = videosById[vidId].title
+            try:
+                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId))
+            except UnicodeEncodeError:
+                print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'))
+    print("\n")
+    print("FULL ERROR LOG:")
+    for error in logger.errors:
+        vidId = error.split(': ')[1]
+        title = videosById[vidId].title
+        try:
+            print("\t{}".format(error))
+            print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId))
+        except UnicodeEncodeError:
+            print("\t{}".format(error).encode('utf-8'))
+            print("\t\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'))
 
 
 def main():
