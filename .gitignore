@@ -1,3 +1,4 @@
 *.swp 
 YoutubeDL.py 
 errorLog.txt
+unavailableVideos.txt
