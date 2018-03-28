@@ -115,9 +115,9 @@ def performDownload(videosToDownload, targetDirectory):
     urls = []
     for video in videosToDownload:
         if video.source == 'yt':
-            urls.append("https://www.youtube.com/watch?v={}".format(v.vidId))
+            urls.append("https://www.youtube.com/watch?v={}".format(video.vidId))
         elif video.source == 'vimeo':
-            urls.append("https://vimeo.com/{}".format(v.vidId))
+            urls.append("https://vimeo.com/{}".format(video.vidId))
     options =  {
         'ignoreerrors': True,
         'outtmpl': "{}%(title)s - %(id)s.%(ext)s".format(targetDirectory)
