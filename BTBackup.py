@@ -112,7 +112,12 @@ def performDownload(videosToDownload, targetDirectory):
         pathlib.Path(targetDirectory).mkdir(parents=True)
     except FileExistsError:
         pass
-    urls = ["https://www.youtube.com/watch?v={}".format(v.vidId) for v in videosToDownload]
+    urls = []
+    for video in videosToDownload:
+        if video.source == 'yt':
+            urls.append("https://www.youtube.com/watch?v={}".format(v.vidId))
+        elif video.source == 'vimeo':
+            urls.append("https://vimeo.com/{}".format(v.vidId))
     options =  {
         'ignoreerrors': True,
         'outtmpl': "{}%(title)s - %(id)s.%(ext)s".format(targetDirectory)
