@@ -100,7 +100,6 @@ def readInUnavailableVideos():
 def filterVideos(videosById, alreadyDownloadedIds, knownUnavailableIds, requiredPlays):
     def videoShouldBeDownloaded(v):
         return v.playCount >= requiredPlays \
-               and v.source == 'yt' \
                and v.vidId not in alreadyDownloadedIds \
                and v.vidId not in knownUnavailableIds
 
