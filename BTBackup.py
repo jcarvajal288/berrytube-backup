@@ -7,10 +7,13 @@ Requires youtube-dl as an installed Python module. https://youtube-dl.org/
 import argparse
 import os
 import pathlib
+import re
 import urllib.request
 import youtube_dl
 
 class Video(object):
+    episodeRegex = re.compile(r'^\dx\d\d$')
+
     def __init__(self, line):
         data = line.decode('utf-8').strip().split('<>')
         self.timestamp = data[0]
@@ -18,6 +21,7 @@ class Video(object):
         self.vidId = data[2]
         self.title = data[3]
         self.playCount = 1
+        self.isAnEpisode = Video.episodeRegex.match(self.title)
 
     def incrementCount(self):
         self.playCount += 1
@@ -101,7 +105,8 @@ def filterVideos(videosById, alreadyDownloadedIds, knownUnavailableIds, required
     def videoShouldBeDownloaded(v):
         return v.playCount >= requiredPlays \
                and v.vidId not in alreadyDownloadedIds \
-               and v.vidId not in knownUnavailableIds
+               and v.vidId not in knownUnavailableIds \
+               and not v.isAnEpisode
 
     print("Filtering out videos with fewer than {} plays.".format(requiredPlays))
     return [v for v in videosById.values() if videoShouldBeDownloaded(v)]
