@@ -66,6 +66,8 @@ def parseArgs():
             help='number of plays a single video needs to have in vidlog.txt to warrant backing up.')
     parser.add_argument('-y', '--yes', action="store_true", dest='noPrompt', 
             help="automatically say yes to the 'are you sure?' prompt")
+    parser.add_argument( '--no-progress', action="store_true", dest='noProgress', 
+            help="Do not print progress bar (useful for Jenkins)")
     return parser.parse_args()
 
 
@@ -112,7 +114,7 @@ def filterVideos(videosById, alreadyDownloadedIds, knownUnavailableIds, required
     return [v for v in videosById.values() if videoShouldBeDownloaded(v)]
 
 
-def performDownload(videosToDownload, targetDirectory):
+def performDownload(videosToDownload, targetDirectory, noProgress):
     try:
         pathlib.Path(targetDirectory).mkdir(parents=True)
     except FileExistsError:
@@ -127,6 +129,8 @@ def performDownload(videosToDownload, targetDirectory):
         'ignoreerrors': True,
         'outtmpl': "{}%(title)s - %(id)s.%(ext)s".format(targetDirectory)
     }
+    if noProgress:
+        options['noprogress'] = True
     logger = Logger()
     with youtube_dl.YoutubeDL(options) as ydl:
         logger.ydl = ydl # done here to reuse the default logger's nifty screen logging
@@ -216,7 +220,7 @@ def main():
         answer = input("Do you want to continue? (yes/no)")
         if not (answer == 'y' or answer == 'yes'):
             return
-    logger = performDownload(videosToDownload, targetDirectory)
+    logger = performDownload(videosToDownload, targetDirectory, args.noProgress)
     if len(logger.errors) > 0:
         knownUnavailableIds.update(processErrors(logger, videosById))
 
