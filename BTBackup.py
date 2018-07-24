@@ -95,7 +95,12 @@ def readVidLog():
 def getAlreadyDownloadedVidIds(targetDirectory):
     if not os.path.isdir(targetDirectory):
         return []
-    return [v.split(' - ')[-1][:11] for v in os.listdir(targetDirectory)]
+    return [parseId(v) for v in os.listdir(targetDirectory)]
+
+
+def parseId(vidTitle):
+    idPartition = vidTitle.split(' - ')[-1]
+    return idPartition[:idPartition.find('.')]
 
 
 def readInUnavailableVideos():
