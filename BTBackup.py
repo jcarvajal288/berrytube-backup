@@ -153,16 +153,20 @@ def performDownload(videosToDownload, targetDirectory, noProgress):
 def processErrors(logger, videosById):
     def printError(error):
         vidId = error.split(': ')[1]
-        title = videosById[vidId].title
         try:
+            title = videosById[vidId].title
             print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId))
         except UnicodeEncodeError:
             print("\t{} (https://www.youtube.com/watch?v={})".format(title, vidId).encode('utf-8'))
+        except KeyError:
+            print("\tUnrecognized key: {}".format(vidId))
 
     print("ERRORS OCCURRED WHILE DOWNLOADING.  Some videos may be unavailable:")
     print("UNAVAILABLE VIDEOS:")
     for error in logger.errors:
-        if "This video is unavailable." in error or "This video is no longer available" in error:
+        if "This video is unavailable." in error \
+        or "This video is no longer available" in error \
+        or "Unable to download webpage" in error:
             printError(error)
     print("\n")
     print("COPYRIGHT BLOCKED VIDEOS:")
