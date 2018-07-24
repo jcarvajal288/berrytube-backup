@@ -104,8 +104,11 @@ def parseId(vidTitle):
 
 
 def readInUnavailableVideos():
-    with open("unavailableVideos.txt") as f:
-        return set([v.strip() for v in f.readlines()])
+    try:
+        with open("unavailableVideos.txt") as f:
+            return set([v.strip() for v in f.readlines()])
+    except FileNotFoundError:
+        return set()
 
 
 def filterVideos(videosById, alreadyDownloadedIds, knownUnavailableIds, requiredPlays):
