@@ -38,6 +38,15 @@ class MultihoofLogReader(object):
             if b'Now Playing:' in line:
                 yield line
 
+    def listAllLinesByKeyword(self, keyword):
+        """
+        List all lines that contain a given keyword.
+        The keyword must be a binary string e.g. b'foo'.
+        """
+        for line in self.listAllLogLines():
+            if keyword in line:
+                yield line
+
 
 if __name__ == '__main__':
     logReader = MultihoofLogReader()
