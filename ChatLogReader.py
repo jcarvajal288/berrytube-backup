@@ -2,11 +2,11 @@ from bs4 import BeautifulSoup
 import requests
 import urllib
 
-class MultihoofLogReader(object):
-    multihoofUrl = "https://logs.multihoofdrinking.com/"
+class ChatLogReader(object):
+    chatLogUrl = "https://logs.multihoofdrinking.com/"
 
     def __listLogFileUrls(self):
-        page = requests.get(self.multihoofUrl).text
+        page = requests.get(self.chatLogUrl).text
         soup = BeautifulSoup(page, 'html.parser')
         return (node.get('href') for node in soup.find_all('a') if node.get('href').endswith('log'))
 
@@ -49,6 +49,6 @@ class MultihoofLogReader(object):
 
 
 if __name__ == '__main__':
-    logReader = MultihoofLogReader()
+    logReader = ChatLogReader()
     for line in logReader.listAllVideoPlayLines():
         print(line)
