@@ -55,7 +55,6 @@ class ChatLogReader(object):
 
     @retry(TimeoutError, tries=5, delay=3, backoff=2)
     def __readLogFile(self, logFileUrl):
-        print("Reading {}...".format(logFileUrl))
         logFile = urllib.request.urlopen(logFileUrl)
         for line in logFile:
             yield line
