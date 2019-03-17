@@ -1,5 +1,5 @@
 """
-Downloads videos from radio.berrytube.tv/vidlog.txt to a target directory.
+Downloads videos from the Berrytube chatlog to a target directory.
 
 Requires youtube-dl as an installed Python module. https://youtube-dl.org/
 """
@@ -8,20 +8,35 @@ import argparse
 import os
 import pathlib
 import re
+import sys
 import urllib.request
 import youtube_dl
+
+from ChatLogReader import ChatLogReader
 
 class Video(object):
     episodeRegex = re.compile(r'^\dx\d\d$')
 
-    def __init__(self, line):
-        data = line.decode('utf-8').strip().split('<>')
-        self.timestamp = data[0]
-        self.source = data[1]
-        self.vidId = data[2]
-        self.title = data[3]
+    def __init__(self, logLine):
+        title, vidId, source = self.parseLogLine(logLine)
+        self.title = title
+        self.vidId = vidId
+        self.source = source
         self.playCount = 1
         self.isAnEpisode = Video.episodeRegex.match(self.title)
+
+    def parseLogLine(self, logLine):
+        payload = logLine.decode('utf-8').strip().split("Now Playing:")[1]
+        youtubeDelimiter = " ( https://youtu.be/"
+        vimeoDelimiter = " ( https://vimeo.com/"
+        if youtubeDelimiter in payload:
+            title, vidId = payload.split(youtubeDelimiter)
+            return title, vidId, 'yt'
+        elif vimeoDelimiter in payload:
+            title, vidId =  payload.split(vimeoDelimiter)
+            return title, vidId, 'vimeo'
+        else:
+            raise ValueError("Unrecognized video site {}".format(payload))
 
     def incrementCount(self):
         self.playCount += 1
@@ -63,7 +78,7 @@ def parseArgs():
     parser.add_argument('-t', '--target', metavar='<directory>', type=str, dest='targetDirectory', required=False,
             help='directory to put the downloaded videos.  Will be created if it does not exist.')
     parser.add_argument('-r', '--requiredPlays', metavar='<integer>', type=int, dest='requiredPlays', required=False,
-            help='number of plays a single video needs to have in vidlog.txt to warrant backing up.')
+            help='number of plays a single video needs to have to warrant backing up.')
     parser.add_argument('-y', '--yes', action="store_true", dest='noPrompt', 
             help="automatically say yes to the 'are you sure?' prompt")
     parser.add_argument( '--no-progress', action="store_true", dest='noProgress', 
@@ -71,16 +86,15 @@ def parseArgs():
     return parser.parse_args()
 
 
-def readVidLog():
-    print("Parsing vidlog...", flush=True)
-    vidLogUrl = 'http://radio.berrytube.tv/vidlog.txt'
-    vidlog = urllib.request.urlopen(vidLogUrl)
+def getVideosById():
+    print("Parsing videos from chat logs...")
     videosById = {}
     errors = []
-    for line in vidlog:
+    logReader = ChatLogReader()
+    for line in logReader.listAllVideoPlayLines():
         try:
             video = Video(line)
-        except TypeError:
+        except:
             errors.append(line)
             continue
         if video.vidId in videosById:
@@ -88,7 +102,8 @@ def readVidLog():
         else:
             videosById[video.vidId] = video
     if len(errors) > 0:
-        print("Unable to parse {} lines of vidlog.txt".format(len(errors)))
+        print("Unable to parse {} chat log lines".format(len(errors)))
+    print("done.")
     return videosById
 
 
@@ -211,8 +226,8 @@ def main():
     if not targetDirectory.endswith('/'):
         targetDirectory += '/'
 
-    videosById = readVidLog()
-    print("Found {} unique videos in vidlog.".format(len(videosById)))
+    videosById = getVideosById()
+    print("Found {} unique videos in the chat logs.".format(len(videosById)))
 
     alreadyDownloadedIds = getAlreadyDownloadedVidIds(targetDirectory)
     if len(alreadyDownloadedIds) > 0:
