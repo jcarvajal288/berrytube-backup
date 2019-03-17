@@ -75,7 +75,7 @@ class Logger(object):
 
 def parseArgs():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-t', '--target', metavar='<directory>', type=str, dest='targetDirectory', required=False,
+    parser.add_argument('-t', '--target', metavar='<directory>', type=str, dest='targetDirectory', required=True,
             help='directory to put the downloaded videos.  Will be created if it does not exist.')
     parser.add_argument('-r', '--requiredPlays', metavar='<integer>', type=int, dest='requiredPlays', required=False,
             help='number of plays a single video needs to have to warrant backing up.')
