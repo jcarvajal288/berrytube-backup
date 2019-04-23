@@ -62,6 +62,7 @@ class ChatLogReader(object):
     def listAllLogLines(self):
         logfileUrls = self.__listLogFileUrls()
         for logFileUrl in logfileUrls:
+            print("Reading {}".format(logFileUrl))
             try:
                 for line in self.__readLogFile(logFileUrl):
                     yield line
