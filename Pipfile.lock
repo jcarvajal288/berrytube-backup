@@ -62,25 +62,24 @@
         },
         "soupsieve": {
             "hashes": [
-                "sha256:afa56bf14907bb09403e5d15fbed6275caa4174d36b975226e3b67a3bb6e2c4b",
-                "sha256:eaed742b48b1f3e2d45ba6f79401b2ed5dc33b2123dfe216adb90d4bfa0ade26"
+                "sha256:6898e82ecb03772a0d82bd0d0a10c0d6dcc342f77e0701d0ec4a8271be465ece"
             ],
-            "version": "==1.8"
+            "version": "==1.9.1"
         },
         "urllib3": {
             "hashes": [
-                "sha256:61bf29cada3fc2fbefad4fdf059ea4bd1b4a86d2b6d15e1c7c0b582b9752fe39",
-                "sha256:de9529817c93f27c8ccbfead6985011db27bd0ddfcdb2d86f3f663385c6a9c22"
+                "sha256:4c291ca23bbb55c76518905869ef34bdd5f0e46af7afe6861e8375643ffee1a0",
+                "sha256:9a247273df709c4fedb38c711e44292304f73f39ab01beda9f6b9fc375669ac3"
             ],
-            "version": "==1.24.1"
+            "version": "==1.24.2"
         },
         "youtube-dl": {
             "hashes": [
-                "sha256:55f5362b973d1b4b6995300eb9fef2c650f25a3c1be70de55e4115eaf618ccb6",
-                "sha256:5699ffcb688c6d4035d61e24ffdc39248dbe71fea64c965d851fae4fefac5004"
+                "sha256:46f6e30c673ba71de84748dad4c264d1b6fb30beebf1ef834846a651b4524a78",
+                "sha256:b20d110e1bed8d16f5771bb938ab6e5da67f08af62b599af65301cca290f2e15"
             ],
             "index": "pypi",
-            "version": "==2019.3.9"
+            "version": "==2019.4.24"
         }
     },
     "develop": {}
