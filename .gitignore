@@ -2,3 +2,4 @@
 YoutubeDL.py 
 errorLog.txt
 unavailableVideos.txt
+__pycache__

@@ -150,7 +150,7 @@ def performDownload(videosToDownload, targetDirectory, noProgress):
             urls.append("https://vimeo.com/{}".format(video.vidId))
     options =  {
         'ignoreerrors': True,
-        'verbose': True,
+        options['verbose']: True,
         'outtmpl': "{}%(title)s - %(id)s.%(ext)s".format(targetDirectory)
     }
     if noProgress:
