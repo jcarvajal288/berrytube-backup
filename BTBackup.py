@@ -29,12 +29,16 @@ class Video(object):
         payload = logLine.decode('utf-8').strip().split("Now Playing:")[1]
         youtubeDelimiter = " ( https://youtu.be/"
         vimeoDelimiter = " ( https://vimeo.com/"
+        dmDelimiter = " ( dm - "
         if youtubeDelimiter in payload:
             title, vidId = payload.split(youtubeDelimiter)
             return title, vidId, 'yt'
         elif vimeoDelimiter in payload:
             title, vidId =  payload.split(vimeoDelimiter)
             return title, vidId, 'vimeo'
+        elif dmDelimiter in payload:
+            title, vidId =  payload.split(dmDelimiter)
+            return title, vidId, 'dm'
         else:
             raise ValueError("Unrecognized video site {}".format(payload))
 
@@ -148,9 +152,20 @@ def performDownload(videosToDownload, targetDirectory, noProgress):
             urls.append("https://www.youtube.com/watch?v={}".format(video.vidId))
         elif video.source == 'vimeo':
             urls.append("https://vimeo.com/{}".format(video.vidId))
+        elif video.source == 'dm':
+            urls.append("https://www.dailymotion.com/embed/video/{}".format(video.vidId))
     options =  {
+        'format': 'bestvideo+bestaudio',
+        'writesubtitles': True,
+        'subtitlesformat': 'en',
+        'merge_output_format': 'mkv',
         'ignoreerrors': True,
-        'outtmpl': "{}%(title)s - %(id)s.%(ext)s".format(targetDirectory)
+        'outtmpl': "{}%(title)s - %(id)s.%(ext)s".format(targetDirectory),
+        'postprocessors': [{
+            'key': 'FFmpegEmbedSubtitle'
+        }, {
+            'key': 'FFmpegVideoConvertor',
+            'preferedformat': 'mkv'}]
     }
     if noProgress:
         options['noprogress'] = True
@@ -159,7 +174,10 @@ def performDownload(videosToDownload, targetDirectory, noProgress):
         logger.ydl = ydl # done here to reuse the default logger's nifty screen logging
         ydl.params['logger'] = logger
         try:
-            ydl.download(urls)
+            #print(urls)
+            newurls = [x[:-2] for x in urls]
+            #print(newurls)
+            ydl.download(newurls)
         except KeyboardInterrupt:
             pass # let the program finish writing its error log
     return logger
